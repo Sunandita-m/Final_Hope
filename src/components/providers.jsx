@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { UserProfileProvider } from "@/contexts/user-profile-context";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,10 +17,12 @@ export function Providers({ children }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider delayDuration={250}>
-          {children}
-          <Toaster richColors position="top-right" />
-        </TooltipProvider>
+        <UserProfileProvider>
+          <TooltipProvider delayDuration={250}>
+            {children}
+            <Toaster richColors position="top-right" />
+          </TooltipProvider>
+        </UserProfileProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

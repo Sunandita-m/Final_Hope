@@ -47,8 +47,18 @@ export function KpiCard({ title, value, deltaPct, suffix, icon: Icon }) {
         </div>
 
         {Icon ? (
-          <div className="grid size-10 place-items-center rounded-xl border border-white/10 bg-white/5">
-            <Icon className="size-5 text-indigo-300" />
+          <div 
+            className="grid size-10 place-items-center rounded-xl border border-white/10"
+            style={{
+              background: `rgba(var(--color-primary), 0.1)`
+            }}
+          >
+            <Icon 
+              className="size-5"
+              style={{
+                color: `rgb(var(--color-primary))`
+              }}
+            />
           </div>
         ) : null}
       </div>

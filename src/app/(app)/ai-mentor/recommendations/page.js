@@ -73,7 +73,12 @@ export default function RecommendationsPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <Button className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white hover:from-indigo-400 hover:to-violet-400">
+                <Button 
+                  className="rounded-xl text-white"
+                  style={{
+                    background: `linear-gradient(to right, rgb(var(--color-primary)), rgb(var(--color-secondary)))`
+                  }}
+                >
                   Implement
                 </Button>
                 <Button variant="secondary" className="rounded-xl">

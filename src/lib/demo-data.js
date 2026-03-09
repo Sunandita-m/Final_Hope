@@ -1,7 +1,7 @@
 export const creator = {
-  name: "Ava",
-  handle: "@ava.creates",
-  niche: "AI + design tips",
+  name: "Alex Tech",
+  handle: "@alextech",
+  niche: "Technology & AI tools for developers",
 };
 
 export const kpis = {

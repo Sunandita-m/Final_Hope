@@ -45,7 +45,10 @@ export default function DashboardOverviewPage() {
         <div className="flex flex-wrap items-center gap-2">
           <Button
             asChild
-            className="rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow hover:from-indigo-400 hover:to-violet-400"
+            className="rounded-full text-white shadow"
+            style={{
+              background: `linear-gradient(to right, rgb(var(--color-primary)), rgb(var(--color-secondary)))`
+            }}
           >
             <Link href="/ai-mentor/chat">
               <Sparkles className="mr-2 size-4" />
@@ -93,7 +96,12 @@ export default function DashboardOverviewPage() {
               <span style={{ fontFamily: "var(--font-plus-jakarta)" }}>
                 Engagement trajectory (30 days)
               </span>
-              <Badge className="bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20">
+              <Badge 
+                style={{
+                  background: `rgba(var(--color-primary), 0.15)`,
+                  color: `rgb(var(--color-primary))`
+                }}
+              >
                 +8.4% followers
               </Badge>
             </CardTitle>
@@ -125,14 +133,14 @@ export default function DashboardOverviewPage() {
                 <Line
                   type="monotone"
                   dataKey="engagement"
-                  stroke="#8B5CF6"
+                  stroke={`rgb(var(--color-primary))`}
                   strokeWidth={3}
                   dot={false}
                 />
                 <Line
                   type="monotone"
                   dataKey="reach"
-                  stroke="#6366F1"
+                  stroke={`rgb(var(--color-secondary))`}
                   strokeWidth={2}
                   dot={false}
                   opacity={0.65}

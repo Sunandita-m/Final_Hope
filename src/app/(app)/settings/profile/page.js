@@ -137,7 +137,12 @@ export default function ProfileSettingsPage() {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                 <div className="flex flex-col items-center gap-2">
                   <Avatar className="size-20 ring-2 ring-white/10">
-                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-xl text-white">
+                    <AvatarFallback 
+                      className="text-xl text-white"
+                      style={{
+                        background: `linear-gradient(to bottom right, rgb(var(--color-primary)), rgb(var(--color-secondary)))`
+                      }}
+                    >
                       {profile.displayName.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -184,9 +189,14 @@ export default function ProfileSettingsPage() {
                       className={cn(
                         "rounded-full px-3 py-1.5 text-sm transition",
                         profile.niche === n
-                          ? "bg-indigo-500/25 text-indigo-200 ring-1 ring-indigo-400/40"
+                          ? "text-white ring-1"
                           : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground"
                       )}
+                      style={profile.niche === n ? {
+                        background: `rgba(var(--color-primary), 0.25)`,
+                        color: `rgb(var(--color-primary))`,
+                        ringColor: `rgba(var(--color-primary), 0.4)`
+                      } : {}}
                     >
                       {n}
                     </button>
@@ -309,7 +319,10 @@ export default function ProfileSettingsPage() {
                 <select
                   value={profile.timezone}
                   onChange={(e) => update("timezone", e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                  style={{
+                    '--tw-ring-color': `rgba(var(--color-primary), 0.5)`
+                  }}
                   aria-label="Timezone"
                 >
                   {TIMEZONES.map((tz) => (
@@ -344,7 +357,10 @@ export default function ProfileSettingsPage() {
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 text-white hover:from-indigo-400 hover:to-violet-400"
+          className="gap-2 rounded-full text-white"
+          style={{
+            background: `linear-gradient(to right, rgb(var(--color-primary)), rgb(var(--color-secondary)))`
+          }}
         >
           <Save className="size-4" />
           {saving ? "Saving…" : "Save profile"}

@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { mentorSeedThread, creator } from "@/lib/demo-data";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const quickActions = [
   "Generate 5 carousel hooks",
@@ -22,7 +24,12 @@ function Bubble({ role, children }) {
     <div className={cn("flex gap-3", isMentor ? "" : "justify-end")}>
       {isMentor ? (
         <Avatar className="mt-0.5 size-9 ring-1 ring-white/10">
-          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-white">
+          <AvatarFallback 
+            style={{
+              background: 'linear-gradient(to bottom right, rgb(var(--color-primary)), rgb(var(--color-secondary)))'
+            }}
+            className="text-white"
+          >
             AI
           </AvatarFallback>
         </Avatar>
@@ -32,10 +39,39 @@ function Bubble({ role, children }) {
           "max-w-[78%] rounded-2xl border px-4 py-3 text-sm leading-relaxed",
           isMentor
             ? "border-white/10 bg-white/5"
-            : "border-indigo-500/25 bg-gradient-to-r from-indigo-500/20 to-violet-500/20"
+            : ""
         )}
+        style={!isMentor ? {
+          borderColor: 'rgba(var(--color-primary), 0.25)',
+          background: 'linear-gradient(to right, rgba(var(--color-primary), 0.2), rgba(var(--color-secondary), 0.2))'
+        } : {}}
       >
-        {children}
+        {isMentor ? (
+          <ReactMarkdown 
+            remarkPlugins={[remarkGfm]}
+            components={{
+              h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-3 text-white" {...props} />,
+              h2: ({node, ...props}) => <h2 className="text-base font-bold mb-2" style={{ color: 'rgb(var(--color-primary))' }} {...props} />,
+              h3: ({node, ...props}) => <h3 className="text-sm font-bold mb-2" style={{ color: 'rgba(var(--color-primary), 0.8)' }} {...props} />,
+              h4: ({node, ...props}) => <h4 className="text-sm font-semibold mb-1 text-white/90" {...props} />,
+              ul: ({node, ...props}) => <ul className="list-disc ml-4 mb-3 space-y-1" {...props} />,
+              ol: ({node, ...props}) => <ol className="list-decimal ml-4 mb-3 space-y-1" {...props} />,
+              li: ({node, ...props}) => <li className="text-white/90" {...props} />,
+              p: ({node, ...props}) => <p className="mb-3 text-white/90 last:mb-0" {...props} />,
+              strong: ({node, ...props}) => <strong className="font-bold" style={{ color: 'rgb(var(--color-primary))' }} {...props} />,
+              code: ({node, inline, ...props}) => 
+                inline ? (
+                  <code className="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-xs" {...props} />
+                ) : (
+                  <code className="block p-3 rounded-lg bg-white/10 text-white font-mono text-xs overflow-x-auto" {...props} />
+                ),
+            }}
+          >
+            {children}
+          </ReactMarkdown>
+        ) : (
+          <div className="text-white">{children}</div>
+        )}
       </div>
     </div>
   );
@@ -46,26 +82,55 @@ export function MentorChat() {
   const [text, setText] = React.useState("");
   const [typing, setTyping] = React.useState(false);
 
-  function send(userText) {
+  async function send(userText) {
     const t = (userText ?? text).trim();
     if (!t) return;
 
-    setMessages((m) => [...m, { id: crypto.randomUUID(), role: "user", text: t }]);
+    setMessages((m) => [...m, { id: Date.now().toString(), role: "user", text: t }]);
     setText("");
     setTyping(true);
 
-    window.setTimeout(() => {
+    try {
+      const response = await fetch("https://yfdvjug9nh.execute-api.us-east-1.amazonaws.com/ai-chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: t,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('HTTP error! status: ' + response.status);
+      }
+
+      const data = await response.json();
+      console.log("API Response:", data);
+
+      const aiResponse = data.aiResponse;
+
       setMessages((m) => [
         ...m,
         {
-          id: crypto.randomUUID(),
+          id: Date.now().toString() + "-ai",
           role: "mentor",
-          text:
-            "Got it. For the next post, I’d test a result-first hook and a 3-step framework. Want the hooks in a ‘curious’ tone or ‘direct’ tone?",
+          text: aiResponse,
         },
       ]);
+    } catch (error) {
+      console.error("Error calling AI:", error);
+      setMessages((m) => [
+        ...m,
+        {
+          id: Date.now().toString(),
+          role: "mentor",
+          text: 'Error: ' + error.message,
+        },
+      ]);
+    } finally {
       setTyping(false);
-    }, 900);
+    }
   }
 
   return (
@@ -80,7 +145,7 @@ export function MentorChat() {
               </span>
             </div>
             <div className="text-xs text-muted-foreground">
-              Voice-like responses • typing indicator • response ratings (demo)
+              Voice-like responses • typing indicator • response ratings
             </div>
           </div>
 
@@ -108,7 +173,10 @@ export function MentorChat() {
               >
                 <Bubble role="mentor">
                   <span className="inline-flex items-center gap-2 text-muted-foreground">
-                    <Sparkles className="size-4 text-indigo-300" />
+                    <Sparkles 
+                      className="size-4"
+                      style={{ color: 'rgb(var(--color-primary))' }}
+                    />
                     Thinking
                     <span className="inline-flex gap-1">
                       <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/40 [animation-delay:-0.2s]" />
@@ -139,7 +207,10 @@ export function MentorChat() {
             />
             <Button
               type="submit"
-              className="h-11 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white hover:from-indigo-400 hover:to-violet-400"
+              className="h-11 rounded-2xl text-white"
+              style={{
+                background: 'linear-gradient(to right, rgb(var(--color-primary)), rgb(var(--color-secondary)))'
+              }}
             >
               Send
             </Button>
@@ -173,7 +244,7 @@ export function MentorChat() {
       <div className="glass rounded-3xl border-white/10 p-5">
         <div className="text-sm font-medium">Mentor shortcuts</div>
         <div className="mt-2 text-sm text-muted-foreground">
-          In the full product, this panel would show live “what I noticed” signals,
+          In the full product, this panel would show live "what I noticed" signals,
           saved prompts, and recommended next actions.
         </div>
 
@@ -196,4 +267,3 @@ export function MentorChat() {
     </div>
   );
 }
-

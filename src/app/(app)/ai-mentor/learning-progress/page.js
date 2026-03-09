@@ -76,7 +76,12 @@ export default function LearningProgressPage() {
             The AI is adapting to your style.
           </h1>
         </div>
-        <Badge className="bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20">
+        <Badge 
+          style={{
+            background: `rgba(var(--color-primary), 0.15)`,
+            color: `rgb(var(--color-primary))`
+          }}
+        >
           <Sparkles className="mr-1 size-3" />
           Live adaptation (demo)
         </Badge>
@@ -86,7 +91,10 @@ export default function LearningProgressPage() {
         <Card className="glass border-white/10 lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2">
-              <BrainCircuit className="size-5 text-indigo-300" />
+              <BrainCircuit 
+                className="size-5"
+                style={{ color: `rgb(var(--color-primary))` }}
+              />
               <span style={{ fontFamily: "var(--font-plus-jakarta)" }}>
                 AI Brain Dashboard
               </span>
