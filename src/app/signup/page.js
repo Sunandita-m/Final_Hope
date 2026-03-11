@@ -1,9 +1,11 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CognitoUserAttribute } from "amazon-cognito-identity-js";
-import { userPool } from "@/cognitoConfig";
+import { userPool, getUserPool } from "@/cognitoConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +53,7 @@ export default function SignupPage() {
       }),
     ];
 
-    userPool.signUp(
+    getUserPool().signUp(
       formData.email,
       formData.password,
       attributeList,
