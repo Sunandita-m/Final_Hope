@@ -67,7 +67,7 @@ function Bubble({ role, children }) {
                 ),
             }}
           >
-            {children}
+            {String(children)}
           </ReactMarkdown>
         ) : (
           <div className="text-white">{children}</div>
@@ -91,15 +91,18 @@ export function MentorChat() {
     setTyping(true);
 
     try {
-      const response = await fetch("https://yfdvjug9nh.execute-api.us-east-1.amazonaws.com/ai-chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: t,
-        }),
-      });
+     const response = await fetch("https://yfdvjug9nh.execute-api.us-east-1.amazonaws.com/ai-chat", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+  },
+  mode: 'cors', // Explicitly set CORS mode
+  credentials: 'omit', // Don't send credentials if not needed
+  body: JSON.stringify({
+    prompt: t,
+  }),
+});
 
       if (!response.ok) {
         throw new Error('HTTP error! status: ' + response.status);
