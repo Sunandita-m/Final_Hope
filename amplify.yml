@@ -6,6 +6,10 @@ frontend:
         - npm ci
     build:
       commands:
+        # Write Amplify env vars to Next.js environment file
+        - env | grep -e NEXT_PUBLIC_ >> .env.production
+        # Optional: verify they were written (remove after confirming)
+        - cat .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
