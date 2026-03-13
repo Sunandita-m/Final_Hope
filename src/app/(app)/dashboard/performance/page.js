@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Youtube, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -28,7 +27,6 @@ const mockMetrics = [
 ];
 
 const PerformanceDashboard = () => {
-  const searchParams = useSearchParams();
   const [metrics, setMetrics] = useState(mockMetrics);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -43,23 +41,6 @@ const PerformanceDashboard = () => {
     setError(null);
     
     try {
-      // TODO: Replace with your actual API endpoint
-      // const response = await fetch('YOUR_PERFORMANCE_API_ENDPOINT', {
-      //   method: 'GET',
-      //   mode: 'cors',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      // });
-      
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-      
-      // const data = await response.json();
-      // setMetrics(data);
-      
-      // For now, using mock data
       await new Promise(resolve => setTimeout(resolve, 500));
       setMetrics(mockMetrics);
     } catch (err) {
@@ -74,55 +55,57 @@ const PerformanceDashboard = () => {
   useEffect(() => {
     fetchMetrics();
     
-    // Check if YouTube token exists in localStorage
-    const storedToken = localStorage.getItem('youtube_token');
-    if (storedToken) {
-      try {
-        const token = JSON.parse(storedToken);
-        if (token.expires_at > Date.now()) {
-          setYoutubeToken(token);
-          setYoutubeConnected(true);
-        } else {
-          localStorage.removeItem('youtube_token');
+    if (typeof window !== 'undefined') {
+      // Check if YouTube token exists in localStorage
+      const storedToken = localStorage.getItem('youtube_token');
+      if (storedToken) {
+        try {
+          const token = JSON.parse(storedToken);
+          if (token.expires_at > Date.now()) {
+            setYoutubeToken(token);
+            setYoutubeConnected(true);
+          } else {
+            localStorage.removeItem('youtube_token');
+          }
+        } catch (e) {
+          console.error('Error parsing stored token:', e);
         }
-      } catch (e) {
-        console.error('Error parsing stored token:', e);
       }
-    }
-    
-    // Handle OAuth callback
-    const youtubeStatus = searchParams.get('youtube');
-    const tokens = searchParams.get('tokens');
-    
-    if (youtubeStatus === 'connected' && tokens) {
-      try {
-        const tokenData = JSON.parse(decodeURIComponent(tokens));
-        localStorage.setItem('youtube_token', JSON.stringify(tokenData));
-        setYoutubeToken(tokenData);
-        setYoutubeConnected(true);
-        setConnectionStatus('success');
-        
-        // Clear URL parameters
-        window.history.replaceState({}, '', '/dashboard/performance');
-        
-        // Clear status after 5 seconds
-        setTimeout(() => setConnectionStatus(null), 5000);
-      } catch (e) {
-        console.error('Error storing tokens:', e);
+      
+      // Handle OAuth callback from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const youtubeStatus = urlParams.get('youtube');
+      const tokens = urlParams.get('tokens');
+      
+      if (youtubeStatus === 'connected' && tokens) {
+        try {
+          const tokenData = JSON.parse(decodeURIComponent(tokens));
+          localStorage.setItem('youtube_token', JSON.stringify(tokenData));
+          setYoutubeToken(tokenData);
+          setYoutubeConnected(true);
+          setConnectionStatus('success');
+          
+          window.history.replaceState({}, '', '/dashboard/performance');
+          setTimeout(() => setConnectionStatus(null), 5000);
+        } catch (e) {
+          console.error('Error storing tokens:', e);
+          setConnectionStatus('error');
+        }
+      } else if (youtubeStatus === 'error') {
         setConnectionStatus('error');
+        setTimeout(() => setConnectionStatus(null), 5000);
       }
-    } else if (youtubeStatus === 'error') {
-      setConnectionStatus('error');
-      setTimeout(() => setConnectionStatus(null), 5000);
     }
-  }, [searchParams]);
+  }, []);
   
   const handleYoutubeConnect = () => {
     window.location.href = '/api/auth/youtube';
   };
   
   const handleYoutubeDisconnect = () => {
-    localStorage.removeItem('youtube_token');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('youtube_token');
+    }
     setYoutubeToken(null);
     setYoutubeConnected(false);
     setConnectionStatus('disconnected');
@@ -341,19 +324,17 @@ const PerformanceDashboard = () => {
           </p>
         </div>
         
-        <div className="flex gap-3">
-          <Button
-            onClick={fetchMetrics}
-            disabled={loading}
-            className="rounded-full text-white"
-            style={{
-              background: `linear-gradient(to right, rgb(var(--color-primary)), rgb(var(--color-secondary)))`
-            }}
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh Data
-          </Button>
-        </div>
+        <Button
+          onClick={fetchMetrics}
+          disabled={loading}
+          className="rounded-full text-white"
+          style={{
+            background: `linear-gradient(to right, rgb(var(--color-primary)), rgb(var(--color-secondary)))`
+          }}
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Refresh Data
+        </Button>
       </header>
 
       {connectionStatus === 'success' && (
@@ -398,10 +379,10 @@ const PerformanceDashboard = () => {
       {!youtubeConnected && (
         <Card className="bg-blue-500/10 border-blue-500/20">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: 'rgba(255, 0, 0, 0.2)' }}
                 >
                   <Youtube className="w-6 h-6 text-red-500" />
@@ -417,7 +398,7 @@ const PerformanceDashboard = () => {
               </div>
               <Button
                 onClick={handleYoutubeConnect}
-                className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6"
+                className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6 flex-shrink-0"
               >
                 <Youtube className="w-4 h-4 mr-2" />
                 Connect YouTube
@@ -430,10 +411,10 @@ const PerformanceDashboard = () => {
       {youtubeConnected && (
         <Card className="bg-emerald-500/10 border-emerald-500/20">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: 'rgba(16, 185, 129, 0.2)' }}
                 >
                   <CheckCircle2 className="w-6 h-6 text-emerald-400" />
@@ -450,7 +431,7 @@ const PerformanceDashboard = () => {
               <Button
                 onClick={handleYoutubeDisconnect}
                 variant="outline"
-                className="border-white/10 text-gray-300 hover:bg-white/5 rounded-full px-6"
+                className="border-white/10 text-gray-300 hover:bg-white/5 rounded-full px-6 flex-shrink-0"
               >
                 Disconnect
               </Button>
@@ -482,12 +463,12 @@ const PerformanceDashboard = () => {
             <select
               value={platform}
               onChange={(e) => setPlatform(e.target.value)}
-              className="w-full px-4 py-2 bg-white/5 text-white rounded-xl border border-white/10 focus:outline-none focus:ring-2"
+              className="w-full px-4 py-2 bg-white/5 text-white rounded-xl border border-white/10 focus:outline-none focus:ring-2 [&>option]:bg-slate-900 [&>option]:text-white"
               style={{ '--tw-ring-color': 'rgb(var(--color-primary))' }}
             >
-              <option value="all">All Platforms</option>
-              <option value="youtube">YouTube</option>
-              <option value="instagram">Instagram</option>
+              <option value="all" className="bg-slate-900 text-white">All Platforms</option>
+              <option value="youtube" className="bg-slate-900 text-white">YouTube</option>
+              <option value="instagram" className="bg-slate-900 text-white">Instagram</option>
             </select>
           </CardContent>
         </Card>
