@@ -142,7 +142,7 @@ export default function TrendCalendarPage() {
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [view, setView] = useState('month');
   const [currentMonth, setCurrentMonth] = useState(2); // March = 2 (0-indexed)
-  const [currentYear, setCurrentYear] = useState(2024);
+  const [currentYear, setCurrentYear] = useState(2026);
   const [trendData, setTrendData] = useState(generateTrendData());
   const [loading, setLoading] = useState(false);
 
@@ -352,7 +352,7 @@ export default function TrendCalendarPage() {
               {/* Calendar days */}
               <div className="grid grid-cols-7 gap-2">
                 {days.map((day, index) => {
-                  const trend = day && currentMonth === 2 && currentYear === 2024 ? trendData[day] : null;
+                  const trend = day && currentMonth === 2 && currentYear === 2026 ? trendData[day] : null;
                   const showTrend = trend && filterTrendsByPlatform(trend);
                   const badge = showTrend ? getTrendBadge(trend.strength) : null;
 
