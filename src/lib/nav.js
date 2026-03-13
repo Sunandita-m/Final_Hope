@@ -11,7 +11,6 @@ import {
   UserRound,
   Plug,
   SlidersHorizontal,
-  Rocket,
   TrendingUp,
   Zap,
   Lightbulb,
@@ -74,15 +73,6 @@ export const nav = [
       { label: "Profile", href: "/settings/profile", icon: UserRound },
       { label: "Integrations", href: "/settings/integrations", icon: Plug },
       { label: "Preferences", href: "/settings/preferences", icon: SlidersHorizontal },
-    ],
-  },
-  {
-    label: "Onboarding",
-    icon: Rocket,
-    items: [
-      { label: "Connect accounts", href: "/onboarding/connect-accounts" },
-      { label: "AI training", href: "/onboarding/ai-training" },
-      { label: "Goal setting", href: "/onboarding/goal-setting" },
     ],
   },
 ];
