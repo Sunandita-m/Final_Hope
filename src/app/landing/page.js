@@ -27,6 +27,10 @@ export default function LandingPage() {
     router.push('/dashboard/overview');
   };
 
+  const handleMeetCompanion = () => {
+    router.push('/ai-mentor/chat');
+  };
+
   const features = [
     {
       icon: <Brain className="w-8 h-8" />,
@@ -155,7 +159,7 @@ export default function LandingPage() {
             <Button className="btn-primary" onClick={handleGetStarted}>
               Get Started <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
-            <Button className="btn-secondary">
+            <Button className="btn-secondary" onClick={handleMeetCompanion}>
               <Play className="w-4 h-4 mr-2" /> Meet Your Companion
             </Button>
           </motion.div>
