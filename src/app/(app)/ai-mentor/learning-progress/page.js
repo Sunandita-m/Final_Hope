@@ -277,4 +277,4 @@ function LearningProgressPage() {
   );
 }
 
-
+export default LearningProgressPage;
