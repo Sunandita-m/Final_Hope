@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Youtube, CheckCircle2, AlertCircle } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -27,11 +28,15 @@ const mockMetrics = [
 ];
 
 const PerformanceDashboard = () => {
+  const searchParams = useSearchParams();
   const [metrics, setMetrics] = useState(mockMetrics);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [platform, setPlatform] = useState('all');
   const [chartType, setChartType] = useState('line');
+  const [youtubeConnected, setYoutubeConnected] = useState(false);
+  const [youtubeToken, setYoutubeToken] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState(null);
 
   const fetchMetrics = async () => {
     setLoading(true);
@@ -68,7 +73,61 @@ const PerformanceDashboard = () => {
 
   useEffect(() => {
     fetchMetrics();
-  }, []);
+    
+    // Check if YouTube token exists in localStorage
+    const storedToken = localStorage.getItem('youtube_token');
+    if (storedToken) {
+      try {
+        const token = JSON.parse(storedToken);
+        if (token.expires_at > Date.now()) {
+          setYoutubeToken(token);
+          setYoutubeConnected(true);
+        } else {
+          localStorage.removeItem('youtube_token');
+        }
+      } catch (e) {
+        console.error('Error parsing stored token:', e);
+      }
+    }
+    
+    // Handle OAuth callback
+    const youtubeStatus = searchParams.get('youtube');
+    const tokens = searchParams.get('tokens');
+    
+    if (youtubeStatus === 'connected' && tokens) {
+      try {
+        const tokenData = JSON.parse(decodeURIComponent(tokens));
+        localStorage.setItem('youtube_token', JSON.stringify(tokenData));
+        setYoutubeToken(tokenData);
+        setYoutubeConnected(true);
+        setConnectionStatus('success');
+        
+        // Clear URL parameters
+        window.history.replaceState({}, '', '/dashboard/performance');
+        
+        // Clear status after 5 seconds
+        setTimeout(() => setConnectionStatus(null), 5000);
+      } catch (e) {
+        console.error('Error storing tokens:', e);
+        setConnectionStatus('error');
+      }
+    } else if (youtubeStatus === 'error') {
+      setConnectionStatus('error');
+      setTimeout(() => setConnectionStatus(null), 5000);
+    }
+  }, [searchParams]);
+  
+  const handleYoutubeConnect = () => {
+    window.location.href = '/api/auth/youtube';
+  };
+  
+  const handleYoutubeDisconnect = () => {
+    localStorage.removeItem('youtube_token');
+    setYoutubeToken(null);
+    setYoutubeConnected(false);
+    setConnectionStatus('disconnected');
+    setTimeout(() => setConnectionStatus(null), 3000);
+  };
 
   const getPlatformStats = () => {
     const totals = metrics.reduce((acc, m) => ({
@@ -282,18 +341,123 @@ const PerformanceDashboard = () => {
           </p>
         </div>
         
-        <Button
-          onClick={fetchMetrics}
-          disabled={loading}
-          className="rounded-full text-white"
-          style={{
-            background: `linear-gradient(to right, rgb(var(--color-primary)), rgb(var(--color-secondary)))`
-          }}
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh Data
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={fetchMetrics}
+            disabled={loading}
+            className="rounded-full text-white"
+            style={{
+              background: `linear-gradient(to right, rgb(var(--color-primary)), rgb(var(--color-secondary)))`
+            }}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Data
+          </Button>
+        </div>
       </header>
+
+      {connectionStatus === 'success' && (
+        <Card className="bg-emerald-500/10 border-emerald-500/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <div className="text-emerald-300 font-medium">
+                YouTube connected successfully!
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {connectionStatus === 'error' && (
+        <Card className="bg-red-500/10 border-red-500/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-400" />
+              <div className="text-red-300 font-medium">
+                Failed to connect YouTube. Please try again.
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {connectionStatus === 'disconnected' && (
+        <Card className="bg-amber-500/10 border-amber-500/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-400" />
+              <div className="text-amber-300 font-medium">
+                YouTube disconnected
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {!youtubeConnected && (
+        <Card className="bg-blue-500/10 border-blue-500/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div 
+                  className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  style={{ background: 'rgba(255, 0, 0, 0.2)' }}
+                >
+                  <Youtube className="w-6 h-6 text-red-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-1">
+                    Connect YouTube to See Your Real Data
+                  </h3>
+                  <p className="text-gray-400 text-sm">
+                    Link your YouTube account to get personalized performance insights and analytics
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={handleYoutubeConnect}
+                className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6"
+              >
+                <Youtube className="w-4 h-4 mr-2" />
+                Connect YouTube
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {youtubeConnected && (
+        <Card className="bg-emerald-500/10 border-emerald-500/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div 
+                  className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  style={{ background: 'rgba(16, 185, 129, 0.2)' }}
+                >
+                  <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-1">
+                    YouTube Connected
+                  </h3>
+                  <p className="text-gray-400 text-sm">
+                    Your YouTube account is connected and syncing data
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={handleYoutubeDisconnect}
+                variant="outline"
+                className="border-white/10 text-gray-300 hover:bg-white/5 rounded-full px-6"
+              >
+                Disconnect
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {error && (
         <Card className="bg-red-500/10 border-red-500/20">
