@@ -1,11 +1,9 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CognitoUserAttribute } from "amazon-cognito-identity-js";
-import { userPool, getUserPool } from "@/cognitoConfig";
+import { getUserPool, isUserPoolConfigured } from "@/cognitoConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,9 +22,16 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [cognitoConfigured] = useState(isUserPoolConfigured());
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    
+    if (!cognitoConfigured) {
+      setError("Cognito is not configured. Please set up environment variables.");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -42,6 +47,13 @@ export default function SignupPage() {
       return;
     }
 
+    const userPool = getUserPool();
+    if (!userPool) {
+      setError("Cognito configuration error. Please check your environment variables.");
+      setLoading(false);
+      return;
+    }
+
     const attributeList = [
       new CognitoUserAttribute({
         Name: "email",
@@ -53,7 +65,7 @@ export default function SignupPage() {
       }),
     ];
 
-    getUserPool().signUp(
+    userPool.signUp(
       formData.email,
       formData.password,
       attributeList,
@@ -119,6 +131,18 @@ export default function SignupPage() {
             </div>
           ) : (
             <form onSubmit={handleSignup} className="space-y-4">
+              {!cognitoConfigured && (
+                <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-amber-400">
+                    <p className="font-medium mb-1">Cognito Not Configured</p>
+                    <p className="text-xs text-amber-300">
+                      Please set up AWS Cognito credentials in your <code className="bg-black/20 px-1 rounded">.env.local</code> file. See setup guide.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               {error && (
                 <div className="rounded-lg bg-rose-500/10 border border-rose-500/20 p-3 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-rose-400" />
